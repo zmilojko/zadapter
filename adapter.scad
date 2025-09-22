@@ -51,6 +51,22 @@ module female_connector(
     }
 }
 
+module hose_plug(
+            h=25,
+            screw_extra=0.7
+        ) {
+    color("red") cylinder(h=h, d=INNER_D);
+    color("blue") spherical_thread(
+        cyl_r = INNER_D/2,          // radius of the helical path
+        cyl_h = h,          // total height
+        turns = 2,           // number of turns
+        trace_r = 1.5,       // radius of the trace tube
+
+        steps = 100,            // how smooth the spiral is
+        thread_sphere_fn = 16   // sphere smoothness
+    );
+}
+
 module pin_bar(pin_len=30, pin_d=3.6, top_pos = 0) {
     color("yellow") translate([0, 0, top_pos-pin_d/2+eps]) rotate([0, 90, 0]) cylinder(h=pin_len, d=pin_d, center=true);
 }
@@ -79,6 +95,39 @@ module kiinnike(
     }
 }
 
+//Following is made by ChatGPT. It works, but it renders suoperslow if smooth.
+// Smoothness is defined by two parameters and both are set low for development but
+// should be increased when generating output.
+module spherical_thread(
+    cyl_r = 20,          // radius of the helical path
+    cyl_h = 80,          // total height
+    turns = 4,           // number of turns
+    trace_r = 1.5,       // radius of the trace tube
+
+    steps = 100,            // how smooth the spiral is
+    thread_sphere_fn = 16   // sphere smoothness
+) {
+    for (i = [0:steps]) {
+        t = i / steps;                   // 0 -> 1
+        angle = t * turns * 360;         // rotation around cylinder
+        z = t * cyl_h;                   // height
+        x = cyl_r * cos(angle);
+        y = cyl_r * sin(angle);
+
+        // Trace
+        translate([x, y, z])
+            sphere(r=trace_r, $fn = thread_sphere_fn);
+
+        angle2 = t * turns * 360 + 180;         // rotation around cylinder
+        z = t * cyl_h;                   // height
+        x2 = cyl_r * cos(angle2);
+        y2 = cyl_r * sin(angle2);
+
+        translate([x2, y2, z])
+            sphere(r=trace_r, $fn = thread_sphere_fn);
+    }
+}
+
 module probing_cylindar(extra_h=0, extra_diameter=0) {
     difference() {
         cylinder(h=20+extra_h, d=20+extra_diameter, center=false);
@@ -87,5 +136,8 @@ module probing_cylindar(extra_h=0, extra_diameter=0) {
 }
 
 //main body showing what is being printed();
-translate([0,0,25+eps]) color("transparent") male_connector();
-color("transparent") female_connector();
+
+hose_plug();
+
+//translate([0,0,25+eps]) color("transparent") male_connector();
+//color("transparent") female_connector();
