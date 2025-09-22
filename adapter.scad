@@ -53,18 +53,25 @@ module female_connector(
 
 module hose_plug(
             h=25,
-            screw_extra=0.7
+            screw_extra=0.7,
+            thread_ball_diameter=2,
+            thickness=6
         ) {
-    color("red") cylinder(h=h, d=INNER_D);
-    color("blue") spherical_thread(
-        cyl_r = INNER_D/2,          // radius of the helical path
-        cyl_h = h,          // total height
-        turns = 2,           // number of turns
-        trace_r = 1.5,       // radius of the trace tube
+    difference() {
+        union() {
+            color("red") cylinder(h=h, d=INNER_D);
+            color("blue") translate([0,0,thread_ball_diameter/2]) spherical_thread(
+                cyl_r = INNER_D/2,          // radius of the helical path
+                cyl_h = h-thread_ball_diameter,          // total height
+                turns = 2.4,           // number of turns
+                trace_r = thread_ball_diameter/2,       // radius of the trace tube
 
-        steps = 100,            // how smooth the spiral is
-        thread_sphere_fn = 16   // sphere smoothness
-    );
+                steps = 100,            // how smooth the spiral is
+                thread_sphere_fn = 16   // sphere smoothness
+            );
+        }
+        color("yellow") translate([0,0,-eps]) cylinder(h=h+2*eps, d=INNER_D-2*thickness);
+    }
 }
 
 module pin_bar(pin_len=30, pin_d=3.6, top_pos = 0) {
@@ -103,28 +110,25 @@ module spherical_thread(
     cyl_h = 80,          // total height
     turns = 4,           // number of turns
     trace_r = 1.5,       // radius of the trace tube
+    thread_count = 1,
 
     steps = 100,            // how smooth the spiral is
     thread_sphere_fn = 16   // sphere smoothness
 ) {
     for (i = [0:steps]) {
         t = i / steps;                   // 0 -> 1
-        angle = t * turns * 360;         // rotation around cylinder
-        z = t * cyl_h;                   // height
-        x = cyl_r * cos(angle);
-        y = cyl_r * sin(angle);
+        z = t * cyl_h;
+        
+        for (j = [0:thread_count-1]) {
+            angle = t * turns * 360+(360/thread_count)*j;         // rotation around cylinder
+                               // height
+            x = cyl_r * cos(angle);
+            y = cyl_r * sin(angle);
 
-        // Trace
-        translate([x, y, z])
-            sphere(r=trace_r, $fn = thread_sphere_fn);
-
-        angle2 = t * turns * 360 + 180;         // rotation around cylinder
-        z = t * cyl_h;                   // height
-        x2 = cyl_r * cos(angle2);
-        y2 = cyl_r * sin(angle2);
-
-        translate([x2, y2, z])
-            sphere(r=trace_r, $fn = thread_sphere_fn);
+            // Trace
+            translate([x, y, z])
+                sphere(r=trace_r, $fn = thread_sphere_fn);
+        }
     }
 }
 
