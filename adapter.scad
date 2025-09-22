@@ -1,59 +1,82 @@
+// This sets the circles to be circles
 $fn = 50;
+
+// this is used to avoid rendering issues for coincident faces
 eps = 0.01;
 
-module inner_cylinder(extra_len=0, extra_diameter=0) {
-    color("red") cylinder(h=20+extra_len, d=20+extra_diameter, center=false);
-}
+INNER_D = 20.5;
 
-module outer_cylinder(extra_len=0, extra_diameter=0) {
-    color("red") cylinder(h=20+extra_len, d=26+extra_diameter, center=false);
-}
-
-module pin_bar(extra_len=0, height=0) {
-    rotate([0, 90, 0]) translate([-height, 0, 0]) cylinder(h=3+3+20+extra_len, d=3.6, center=true);
-}
-
-module kiinnike(height=6.45) {
-    hull() {
-        pin_bar(1, 0);
-        pin_bar(1, height-2);
-    }
-    hull() {
-        pin_bar(1, height-2);
-        rotate([0,0,10]) pin_bar(1, height);
-    }
-    hull() {
-        rotate([0,0,10]) pin_bar(1, height);
-        rotate([0,0,30]) pin_bar(1, height);
-    }
-    hull() {
-        rotate([0,0,30]) pin_bar(1, height);
-        rotate([0,0,30]) pin_bar(1, height-0.6);
-    }
-}
-
-
-
-module final() {
-  translate([0,0,-36])   difference() {
-    union() {
-        translate([0,0,18-0.01]) {
-            inner_cylinder(-4);
-            color("blue") translate([0,0,20-4-0.03]) cylinder(h=4+0.04, d1=20, d2=19, center=false);
-            pin_bar(height=12.6);
+module male_connector(
+            h=20,
+            ending_cup_height=3,
+            pin_extrude_len=3,
+            pin_starts_from_rop=6,
+            thickness=6
+        ) {
+    difference() {
+        union() {
+            // main cylinder
+            color("red") cylinder(h=h-ending_cup_height, d=INNER_D);
+            // top rounded cup
+            color("blue") translate([0,0,h-ending_cup_height-eps]) cylinder(h=ending_cup_height, d1=INNER_D, d2=INNER_D-1);
+            // pin bar
+            pin_bar(pin_len=INNER_D+2*pin_extrude_len, top_pos=h-pin_starts_from_rop);
         }
-        outer_cylinder();
-        color("blue") translate([0,0,20-0.01]) cylinder(1.8, d1=26, d2=20, center=false);
+
+        // drill the main hole
+        translate([0,0,-eps]) color("green") cylinder(h=h+2*eps, d=INNER_D-thickness*2);
+
+        // two roundings on the top, making continuous curve that can be printed upside down
+        translate([0,0,h-2])  color("white") cylinder(h=2, d1=INNER_D-thickness, d2=INNER_D-3);
+        translate([0,0,h-4+eps])  color("black") cylinder(h=2, d1=INNER_D-thickness*2, d2=INNER_D-thickness);
+    }
+}
+
+module female_connector(
+            h=30,
+            transition_cup_height=5,
+            extra_width=6,
+            pin_len_incl_buffer_space=3.7
+        ) {
+    difference() {
+        union() {
+            // main cylinder
+            color("red") cylinder(h=h-transition_cup_height, d=INNER_D+extra_width*2);
+            // rounding cup that makes smooth transition to the other side of the adapter
+            color("blue") translate([0,0,h-transition_cup_height-eps]) cylinder(h=transition_cup_height, d1=INNER_D+extra_width*2, d2=INNER_D);
+        }
+        color("yellow") kiinnike(pin_len=INNER_D+2*pin_len_incl_buffer_space);
+        translate([0,0,-eps]) color("green") cylinder(h=h+2*eps, d=INNER_D);
         
     }
-    kiinnike();
-    translate([0,0,-1]) inner_cylinder(-6, 1);
-    translate([0,0,-1]) inner_cylinder(20, -9);
-    
-    
-    //upper narrowing
-    color("yellow") translate([0,0,18+20-4-0.02]) cylinder(h=4+0.05, d1=8, d2=17, center=false);
-  }
+}
+
+module pin_bar(pin_len=30, pin_d=3.6, top_pos = 0) {
+    color("yellow") translate([0, 0, top_pos-pin_d/2+eps]) rotate([0, 90, 0]) cylinder(h=pin_len, d=pin_d, center=true);
+}
+
+
+module kiinnike(
+            pin_len=40,
+            pin_d=3.65,
+            height=6
+        ) {
+    hull() {
+        pin_bar(pin_len=pin_len, pin_d=pin_d, top_pos=pin_d/2);
+        pin_bar(pin_len=pin_len, pin_d=pin_d, top_pos=pin_d/2+height-2);
+    }
+    hull() {
+        pin_bar(pin_len=pin_len, pin_d=pin_d, top_pos=pin_d/2+height-2);
+        rotate([0,0,10]) pin_bar(pin_len=pin_len, pin_d=pin_d, top_pos=pin_d/2+height);
+    }
+    hull() {
+        rotate([0,0,10]) pin_bar(pin_len=pin_len, pin_d=pin_d, top_pos=pin_d/2+height);
+        rotate([0,0,30]) pin_bar(pin_len=pin_len, pin_d=pin_d, top_pos=pin_d/2+height);
+    }
+    hull() {
+        rotate([0,0,30]) pin_bar(pin_len=pin_len, pin_d=pin_d, top_pos=pin_d/2+height);
+        rotate([0,0,30]) pin_bar(pin_len=pin_len, pin_d=pin_d, top_pos=pin_d/2+height-0.6);
+    }
 }
 
 module probing_cylindar(extra_h=0, extra_diameter=0) {
@@ -63,4 +86,6 @@ module probing_cylindar(extra_h=0, extra_diameter=0) {
     }
 }
 
-probing_cylindar();
+//main body showing what is being printed();
+translate([0,0,25+eps]) color("transparent") male_connector();
+color("transparent") female_connector();
