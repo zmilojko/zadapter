@@ -19,7 +19,7 @@ RUBBER_SEAL_THICKNESS = 2.55;
 RUBBER_SEAL_THICKNESS_PRESSED = 2.25; // This is what we want to use, as we need some pressure
                                       // but not too much so pins don't break
 
-KIINNIKE_HEIGHT=6;
+KIINNIKE_HEIGHT=8;  // This is to the top of kiinike
 
 module male_connector(
             h=20,
@@ -50,7 +50,7 @@ module male_connector(
 module female_connector(
             h=30,
             transition_cup_height=5,
-            extra_width=6,
+            extra_width=3.69,
             pin_len_incl_buffer_space=3.7,
             pin_from_top=PIN_FROM_TOP_GENERAL
         ) {
@@ -66,6 +66,7 @@ module female_connector(
         
         // main hole
         translate([0,0,-eps]) color("green") cylinder(h=h+2*eps, d=INNER_D-extra_width*2);
+        
         // hole until the seal
         h_until_seal= KIINNIKE_HEIGHT+pin_from_top+RUBBER_SEAL_THICKNESS_PRESSED;
         translate([0,0,-eps]) color("green") cylinder(h=h_until_seal, d=INNER_D+PLUG_DELTA);
@@ -114,19 +115,19 @@ module kiinnike(
         ) {
     hull() {
         pin_bar(pin_len=pin_len, pin_d=pin_d, top_pos=pin_d/2);
-        pin_bar(pin_len=pin_len, pin_d=pin_d, top_pos=pin_d/2+height-2);
+        pin_bar(pin_len=pin_len, pin_d=pin_d, top_pos=height-2);
     }
     hull() {
-        pin_bar(pin_len=pin_len, pin_d=pin_d, top_pos=pin_d/2+height-2);
-        rotate([0,0,10]) pin_bar(pin_len=pin_len, pin_d=pin_d, top_pos=pin_d/2+height);
+        pin_bar(pin_len=pin_len, pin_d=pin_d, top_pos=height-2);
+        rotate([0,0,10]) pin_bar(pin_len=pin_len, pin_d=pin_d, top_pos=height);
     }
     hull() {
-        rotate([0,0,10]) pin_bar(pin_len=pin_len, pin_d=pin_d, top_pos=pin_d/2+height);
-        rotate([0,0,30]) pin_bar(pin_len=pin_len, pin_d=pin_d, top_pos=pin_d/2+height);
+        rotate([0,0,10]) pin_bar(pin_len=pin_len, pin_d=pin_d, top_pos=height);
+        rotate([0,0,30]) pin_bar(pin_len=pin_len, pin_d=pin_d, top_pos=height);
     }
     hull() {
-        rotate([0,0,30]) pin_bar(pin_len=pin_len, pin_d=pin_d, top_pos=pin_d/2+height);
-        rotate([0,0,30]) pin_bar(pin_len=pin_len, pin_d=pin_d, top_pos=pin_d/2+height-0.6);
+        rotate([0,0,30]) pin_bar(pin_len=pin_len, pin_d=pin_d, top_pos=height);
+        rotate([0,0,30]) pin_bar(pin_len=pin_len, pin_d=pin_d, top_pos=height-0.6);
     }
 }
 
